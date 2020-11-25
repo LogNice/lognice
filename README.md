@@ -7,6 +7,7 @@ python3 -m venv env
 source env/bin/activate
 pip install -r requirements.txt
 docker run -it --rm --name rabbitmq -p 5672:5672 rabbitmq
+docker run -it --name redis -p 6379:6379 redis
 cd app && celery -A tasks worker --loglevel=INFO
 ```
 
@@ -30,5 +31,6 @@ touch app/sessions/session_id/solution_id.py
 ```
 cd app && python3
 >>> from tasks import evaluate
->>> evaluate(session_id, solution_id)
+>>> r = evaluate(session_id, solution_id)
+>>> r.result
 ```
