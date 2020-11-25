@@ -29,6 +29,6 @@ touch app/sessions/session_id/solution_id.py
 
 ```
 cd app && python3
->>> from app.tasks import evaluate
+>>> from tasks import evaluate
 >>> evaluate(session_id, solution_id)
 ```

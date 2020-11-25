@@ -2,5 +2,5 @@ celery
 docker
 redis
 msgpack
-librabbitmq
 python-dotenv
+librabbitmq
