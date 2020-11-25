@@ -20,10 +20,9 @@ docker build -t evaluator .
 #### Create mock session
 
 ```
-mkdir sessions
-mkdir sessions/session_id
-touch sessions/session_id/validator.py
-touch sessions/session_id/solution_id.py
+mkdir -p app/sessions/session_id
+touch app/sessions/session_id/validator.py
+touch app/sessions/session_id/solution_id.py
 ```
 
 #### Run session
