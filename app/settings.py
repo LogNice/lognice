@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv(verbose=True)
+load_dotenv()
 
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
