@@ -21,6 +21,9 @@ def get_success_response(result):
         'result': result
     })
 
+def get_uid():
+    return str(uuid4())[:5]
+
 @app.route('/')
 def hello_world():
     x = PrettyTable()
@@ -48,7 +51,7 @@ def create_session():
     if file.filename.split('.')[-1] != 'py':
         return get_error_response('Wrong file extension')
 
-    session_id = str(uuid4())
+    session_id = get_uid()
     cwd = os.getcwd()
     folder_path = os.path.join(cwd, SESSIONS_PATH, session_id)
     os.makedirs(folder_path)
@@ -74,7 +77,7 @@ def submit_solution(session_id):
     if file.filename.split('.')[-1] != 'py':
         return get_error_response('Wrong file extension')
 
-    solution_id = str(uuid4())
+    solution_id = get_uid()
     cwd = os.getcwd()
     folder_path = os.path.join(cwd, SESSIONS_PATH, session_id)
     file.save(os.path.join(folder_path, '%s.py' % solution_id))
