@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+APP_NAME = os.environ.get('APP_NAME')
 CELERY_BACKEND = os.environ.get('CELERY_BACKEND')
 CELERY_BROKER = os.environ.get('CELERY_BROKER')
 SESSIONS_PATH = os.environ.get('SESSIONS_PATH')

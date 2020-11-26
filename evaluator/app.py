@@ -18,8 +18,7 @@ def execute():
 
     return {
         'passed': passed_count,
-        'blocker': blocker,
-        'success': blocker == None
+        'blocker': blocker
     }
 
 def main():
