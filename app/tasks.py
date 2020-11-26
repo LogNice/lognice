@@ -40,5 +40,14 @@ def evaluate(session_id, solution_id):
 def log_result(task_id, username):
     result = app.backend.get_result(task_id)
     result['username'] = username
-    key = '%s-%s/%s' % (APP_NAME, result['session_id'], result['solution_id'])
-    app.backend.set(key, json.dumps(result))
+    r = app.backend.redis.Redis()
+    r.hset('%s-%s' % (APP_NAME, result['session_id']), result['solution_id'], json.dumps(result))
+
+@app.task
+def summary(session_id):
+    r = app.backend.redis.Redis()
+    result = r.hgetall('%s-%s' % (APP_NAME, session_id))
+    return {
+        k.decode('utf-8'): json.loads(v.decode('utf-8'))
+        for k, v in result.items()
+    }
