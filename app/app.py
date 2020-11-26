@@ -75,18 +75,25 @@ def submit_solution(session_id):
     file.save(os.path.join(folder_path, f"{solution_id}.py"))
     res = evaluate.delay(session_id, solution_id)
     return get_success_response({
-        'solution_id': solution_id,
         'task_id': res.task_id
     })
 
-@app.route('/save/<task_id>/<username>', methods=['POST'])
-def save_task_result(task_id, username):
-    log_result.delay(task_id, username)
-    return get_success_response("task result saved in redis.")
+
+@app.route('/save', methods=['POST'])
+def save_task_result():
+    if not request.data:
+        return get_error_response('No task json provided')
+
+    body = request.get_json()
+    for key in ['task_id', "username"]:
+        if not body.get(key) or not isinstance(body.get(key), str):
+            return get_error_response('Incorrect json')
+
+    log_result(body["task_id"], body["username"])
+    return get_success_response("Task result saved in redis.")
 
 @app.route('/summary/<session_id>', methods=['GET'])
 def get_summary(session_id):
-    res = summary.delay(session_id)
     return get_success_response({
-        'session_summary': res.wait(),
+        'session_summary': summary(session_id)
     })
