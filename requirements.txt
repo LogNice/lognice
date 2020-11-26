@@ -1,6 +1,9 @@
 celery
 docker
-redis
+flask
 msgpack
+prettytable
 python-dotenv
+redis
+uuid
 librabbitmq
