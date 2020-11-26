@@ -85,12 +85,12 @@ def save_task_result():
         return get_error_response('No task json provided')
 
     body = request.get_json()
-    for key in ['task_id', "username"]:
-        if not body.get(key) or not isinstance(body.get(key), str):
+    for key in ['task_id', 'username']:
+        if not isinstance(body.get(key, None), str):
             return get_error_response('Incorrect json')
 
-    log_result(body["task_id"], body["username"])
-    return get_success_response("Task result saved in redis.")
+    log_result(body['task_id'], body['username'])
+    return get_success_response('Task result saved in redis')
 
 @app.route('/summary/<session_id>', methods=['GET'])
 def get_summary(session_id):
