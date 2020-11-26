@@ -26,6 +26,8 @@ def hello_world():
     x = PrettyTable()
     x.field_names = ['Method', 'Endpoint', 'Parameters', 'Description', 'Return Value']
     x.add_row(['POST', '/create', 'validator <File(.py)>', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
+    x.add_row(['POST', '/submit/<session_id>', 'solution <File(.py)>', 'Submit and evaluate a solution to the problem.', 'task_id'])
+    x.add_row(['POST', '/save', 'task_id, username', 'Save a solution.', 'N/A'])
     return x.get_html_string()
 
 # @app.route('/test')
@@ -77,7 +79,6 @@ def submit_solution(session_id):
     return get_success_response({
         'task_id': res.task_id
     })
-
 
 @app.route('/save', methods=['POST'])
 def save_task_result():
