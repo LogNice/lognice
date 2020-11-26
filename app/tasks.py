@@ -1,7 +1,7 @@
 import os
 import json
 import docker
-from celery import Celery
+from celery import Celery, Task
 from settings import (
     APP_NAME,
     CELERY_BACKEND,
@@ -17,7 +17,7 @@ app = Celery('tasks', backend=CELERY_BACKEND, broker=CELERY_BROKER)
 client = docker.from_env()
 
 @app.task
-def evaluate(session_id, solution_id):
+def evaluate_and_save(session_id, solution_id, username):
     cwd = os.getcwd()
     validator_path = os.path.join(cwd, SESSIONS_PATH, session_id, VALIDATOR_NAME)
     solution_path = os.path.join(cwd, SESSIONS_PATH, session_id, '%s.py' % solution_id)
@@ -31,17 +31,15 @@ def evaluate(session_id, solution_id):
             'mode': 'ro'
         }
     }, auto_remove=True)
-    result = json.loads(logs)
-    result['session_id'] = session_id
-    result['solution_id'] = solution_id
-    return result
 
-@app.task
-def log_result(task_id, username):
-    result = app.backend.get_result(task_id)
+    # parse logs and add data
+    result = json.loads(logs)
     result['username'] = username
+
+    # write to database
     r = app.backend.redis.Redis()
-    r.hset('%s-%s' % (APP_NAME, result['session_id']), result['solution_id'], json.dumps(result))
+    r.hset('%s-%s' % (APP_NAME, session_id), solution_id, json.dumps(result))
+    return result
 
 @app.task
 def summary(session_id):

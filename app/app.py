@@ -4,7 +4,7 @@ import base64
 from uuid import uuid4
 from flask import Flask, request
 from prettytable import PrettyTable
-from tasks import evaluate, log_result, summary
+from tasks import evaluate_and_save, summary
 from settings import SESSIONS_PATH, VALIDATOR_NAME
 
 app = Flask(__name__)
@@ -26,8 +26,7 @@ def hello_world():
     x = PrettyTable()
     x.field_names = ['Method', 'Endpoint', 'Parameters', 'Description', 'Return Value']
     x.add_row(['POST', '/create', 'validator <File(.py)>', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
-    x.add_row(['POST', '/submit/<session_id>', 'solution <File(.py)>', 'Submit and evaluate a solution to the problem.', 'task_id'])
-    x.add_row(['POST', '/save', 'task_id, username', 'Save a solution.', 'N/A'])
+    x.add_row(['POST', '/submit/<session_id>', 'username, solution <File(.py)>', 'Submit and evaluate a solution to the problem.', 'task_id'])
     return x.get_html_string()
 
 # @app.route('/test')
@@ -60,6 +59,10 @@ def create_session():
 
 @app.route('/submit/<session_id>', methods=['POST'])
 def submit_solution(session_id):
+    username = request.form.get('username', None)
+    if not isinstance(username, str):
+        return get_error_response('You must provide: username')
+
     solution_file_key = 'solution'
     if solution_file_key not in request.files:
         return get_error_response('No file provided')
@@ -75,23 +78,10 @@ def submit_solution(session_id):
     cwd = os.getcwd()
     folder_path = os.path.join(cwd, SESSIONS_PATH, session_id)
     file.save(os.path.join(folder_path, '%s.py' % solution_id))
-    res = evaluate.delay(session_id, solution_id)
+    result = evaluate_and_save.delay(session_id, solution_id, username)
     return get_success_response({
-        'task_id': res.task_id
+        'task_id': result.task_id
     })
-
-@app.route('/save', methods=['POST'])
-def save_task_result():
-    if not request.data:
-        return get_error_response('No task json provided')
-
-    body = request.get_json()
-    for key in ['task_id', 'username']:
-        if not isinstance(body.get(key, None), str):
-            return get_error_response('You must provide: task_id, username')
-
-    log_result(body['task_id'], body['username'])
-    return get_success_response('Your submission was logged.')
 
 @app.route('/summary/<session_id>', methods=['GET'])
 def get_summary(session_id):
