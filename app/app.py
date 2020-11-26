@@ -72,7 +72,7 @@ def submit_solution(session_id):
     solution_id = str(uuid4())
     cwd = os.getcwd()
     folder_path = os.path.join(cwd, SESSIONS_PATH, session_id)
-    file.save(os.path.join(folder_path, f"{solution_id}.py"))
+    file.save(os.path.join(folder_path, '%s.py' % solution_id))
     res = evaluate.delay(session_id, solution_id)
     return get_success_response({
         'task_id': res.task_id
@@ -87,10 +87,10 @@ def save_task_result():
     body = request.get_json()
     for key in ['task_id', 'username']:
         if not isinstance(body.get(key, None), str):
-            return get_error_response('Incorrect json')
+            return get_error_response('You must provide: task_id, username')
 
     log_result(body['task_id'], body['username'])
-    return get_success_response('Task result saved in redis')
+    return get_success_response('Your submission was logged.')
 
 @app.route('/summary/<session_id>', methods=['GET'])
 def get_summary(session_id):
