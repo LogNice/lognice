@@ -15,12 +15,24 @@ def get_error_response(message):
         'message': message
     })
 
+def get_success_response(result):
+    return json.dumps({
+        'status': 'success',
+        'result': result
+    })
+
 @app.route('/')
 def hello_world():
     x = PrettyTable()
     x.field_names = ['Method', 'Endpoint', 'Parameters', 'Description', 'Return Value']
     x.add_row(['POST', '/create', 'validator <File(.py)>', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
     return x.get_html_string()
+
+# @app.route('/test')
+# def test_image():
+#     img = open('test.png', 'rb').read()
+#     b64 = base64.b64encode(img).decode('utf-8')
+#     return '<img src="data:image/png;base64, %s"></img>' % b64
 
 @app.route('/create', methods=['POST'])
 def create_session():
@@ -40,7 +52,6 @@ def create_session():
     folder_path = os.path.join(cwd, SESSIONS_PATH, session_id)
     os.makedirs(folder_path)
     file.save(os.path.join(folder_path, VALIDATOR_NAME))
-    return json.dumps({
-        'status': 'success',
+    return get_success_response({
         'session_id': session_id
     })
