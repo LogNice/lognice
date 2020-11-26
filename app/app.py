@@ -55,3 +55,45 @@ def create_session():
     return get_success_response({
         'session_id': session_id
     })
+
+@app.route('/submit/<session_id>', methods=['POST'])
+def submit_solution(session_id):
+    solution_file_key = 'solution'
+    if solution_file_key not in request.files:
+        return get_error_response('No file provided')
+
+    file = request.files[solution_file_key]
+    if file.filename == '':
+        return get_error_response('No file provided')
+
+    if file.filename.split('.')[-1] != 'py':
+        return get_error_response('Wrong file extension')
+
+    solution_id = str(uuid4())
+    cwd = os.getcwd()
+    folder_path = os.path.join(cwd, SESSIONS_PATH, session_id)
+    file.save(os.path.join(folder_path, f"{solution_id}.py"))
+    res = evaluate.delay(session_id, solution_id)
+    return get_success_response({
+        'task_id': res.task_id
+    })
+
+
+@app.route('/save', methods=['POST'])
+def save_task_result():
+    if not request.data:
+        return get_error_response('No task json provided')
+
+    body = request.get_json()
+    for key in ['task_id', 'username']:
+        if not isinstance(body.get(key, None), str):
+            return get_error_response('Incorrect json')
+
+    log_result(body['task_id'], body['username'])
+    return get_success_response('Task result saved in redis')
+
+@app.route('/summary/<session_id>', methods=['GET'])
+def get_summary(session_id):
+    return get_success_response({
+        'session_summary': summary(session_id)
+    })
