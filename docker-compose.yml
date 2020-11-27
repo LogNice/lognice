@@ -29,7 +29,7 @@ services:
             - backend
     web:
         build: ./app
-        command: flask run --host=0.0.0.0
+        command: flask run --host 0.0.0.0 --port 5000
         restart: on-failure
         volumes:
             - ./app/sessions:/usr/src/app/sessions
