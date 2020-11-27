@@ -1,0 +1,47 @@
+version: '3'
+services:
+    rabbit:
+        image: rabbitmq:latest
+        ports:
+            - "5672:5672"
+        networks:
+            - backend
+
+    redis:
+        image: redis:latest
+        ports:
+            - "6379:6379"
+        networks:
+            - backend
+
+    celery:
+        restart: always
+        build: ./app
+        command: sh /usr/src/app/start_celery.sh
+        volumes:
+            - ./app/sessions:/usr/src/app/sessions
+            - /var/run/docker.sock:/var/run/docker.sock
+        restart: on-failure
+        depends_on:
+            - rabbit
+            - redis
+        networks:
+            - backend
+    web:
+        build: ./app
+        command: flask run --host=0.0.0.0
+        restart: on-failure
+        volumes:
+            - ./app/sessions:/usr/src/app/sessions
+            - /var/run/docker.sock:/var/run/docker.sock
+        depends_on:
+            - celery
+        environment:
+            - FLASK_APP=/usr/src/app/app.py
+        ports:
+            - "5000:5000"
+        networks:
+            - backend
+
+networks:
+    backend:
