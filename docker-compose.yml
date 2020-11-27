@@ -31,6 +31,7 @@ services:
         networks:
             - backend
         environment:
+            APP_DIR: ${PWD}
             REDIS_HOSTNAME: ${REDIS_HOSTNAME}
             REDIS_PORT: ${REDIS_PORT}
             REDIS_DB: ${REDIS_DB}

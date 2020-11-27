@@ -11,5 +11,5 @@ Run docker compose.
 
 ```
 docker-compose build
-APP_DIR=$(pwd) docker-compose up
+docker-compose up
 ```
