@@ -88,6 +88,4 @@ def submit_solution(session_id):
 
 @app.route('/summary/<session_id>', methods=['GET'])
 def get_summary(session_id):
-    return get_success_response({
-        'session_summary': summary(session_id)
-    })
+    return get_success_response(summary(session_id))
