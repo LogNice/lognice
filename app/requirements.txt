@@ -7,3 +7,5 @@ python-dotenv
 redis
 uuid
 librabbitmq
+matplotlib
+numpy

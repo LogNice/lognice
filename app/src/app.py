@@ -1,7 +1,11 @@
 import os
+import io
 import json
+import base64
 from uuid import uuid4
-from flask import Flask, request
+import numpy as np
+import matplotlib.pyplot as plt
+from flask import Flask, request, send_file
 from prettytable import PrettyTable
 from tasks import evaluate_and_save, summary, is_username_available, register_username, is_token_valid
 from settings import SESSIONS_PATH, VALIDATOR_NAME
@@ -30,6 +34,8 @@ def hello_world():
     x.add_row(['POST', '/create', 'validator (File *.py)', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
     x.add_row(['POST', '/submit/%session_id%', 'username (String), solution (File *.py), (token (String))', 'Submit and evaluate a solution to the problem.', 'task_id'])
     x.add_row(['GET', '/summary/%session_id%', 'N/A', 'Computes a summary of all scores', 'Dictionnary'])
+    x.add_row(['GET', '/summary/table/%session_id%', 'N/A', 'Computes a summary of all scores in a PrettyTable', 'PrettyTable'])
+    x.add_row(['GET', '/summary/graph/%session_id%', 'N/A', 'Computes a summary of all scores in a Horizontal Bar Matplotlib graph', 'PNG'])
     return '<pre>%s</pre>' % x.get_string(title='LogNice API')
 
 @app.route('/create', methods=['POST'])
@@ -105,4 +111,48 @@ def submit_solution(session_id):
 
 @app.route('/summary/<session_id>', methods=['GET'])
 def get_summary_raw(session_id):
-    return get_success_response(summary(session_id))
+    data = summary(session_id)
+    if not data:
+        return get_success_response("No successful submission yet!")
+    return get_success_response(data)
+
+@app.route('/summary/table/<session_id>', methods=['GET'])
+def get_summary_table(session_id):
+    data = summary(session_id)
+    if not data:
+        return get_success_response("No successful submission yet!")
+
+    data = dict(sorted(data.items(), key=lambda x: x[1]["time"]["value"]))
+    x = PrettyTable()
+    x.field_names = ['Rank','Username', 'CPU Time in us']
+    for i, (key, value) in enumerate(data.items()):
+        username = key
+        time = value["time"]["value"]
+        x.add_row([i+1, username, time])
+
+    return '<pre>%s</pre>' % x.get_string(title=f"{session_id} Ranking")
+
+@app.route('/summary/graph/<session_id>', methods=['GET'])
+def get_summary_graph(session_id):
+    data = summary(session_id)
+    if not data:
+        return get_success_response("No successful submission yet!")
+
+    data = dict(sorted(data.items(), key=lambda x: x[1]["time"]["value"], reverse=True))
+    fig = plt.figure()
+    players = data.keys()
+    time = [v["time"]["value"] for k, v in data.items()]
+    pos = np.arange(len(players))
+
+    plt.barh(pos, time, align = 'center', color = 'green')
+    plt.yticks(pos,(players))
+    for i, v in enumerate(time):
+        plt.text(v, i, f"{str(v)} us", fontweight = 'bold', fontsize = '15')
+    plt.xlim(0, time[-1]+ time[0])
+    plt.xlabel("CPU Time in us")
+    plt.title("Ranking based on CPU time")
+    pic_IObytes = io.BytesIO()
+    plt.savefig(pic_IObytes,  format='png')
+    pic_IObytes.seek(0)
+
+    return send_file(pic_IObytes, mimetype='image/PNG')
