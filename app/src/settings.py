@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 APP_NAME = os.environ.get('APP_NAME')
+TOKEN_KEY = os.environ.get('TOKEN_KEY')
 
 REDIS_HOSTNAME = os.environ.get('REDIS_HOSTNAME')
 REDIS_PORT = int(os.environ.get('REDIS_PORT'))

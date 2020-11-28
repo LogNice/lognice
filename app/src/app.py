@@ -3,7 +3,7 @@ import json
 from uuid import uuid4
 from flask import Flask, request
 from prettytable import PrettyTable
-from tasks import evaluate_and_save, summary
+from tasks import evaluate_and_save, summary, is_username_available, register_username, is_token_valid
 from settings import SESSIONS_PATH, VALIDATOR_NAME
 
 app = Flask(__name__)
@@ -57,8 +57,22 @@ def create_session():
 @app.route('/submit/<session_id>', methods=['POST'])
 def submit_solution(session_id):
     username = request.form.get('username', None)
+    token = request.form.get('token', None)
+
     if not isinstance(username, str):
         return get_error_response('You must provide: username')
+
+    if username.find(' ') != -1:
+        return get_error_response('Username cannot contain spaces')
+
+    registered_token = None
+    if not is_username_available(session_id, username):
+        if not token:
+            return get_error_response('Username is not available. Please use your token if that username belongs to you.')
+        if not is_token_valid(session_id, username, token):
+            return get_error_response('Invalid token for username.')
+    else:
+        registered_token = register_username(session_id, username)
 
     solution_file_key = 'solution'
     if solution_file_key not in request.files:
@@ -71,14 +85,19 @@ def submit_solution(session_id):
     if file.filename.split('.')[-1] != 'py':
         return get_error_response('Wrong file extension')
 
-    solution_id = get_uid()
     cwd = os.getcwd()
     folder_path = os.path.join(cwd, SESSIONS_PATH, session_id)
-    file.save(os.path.join(folder_path, '%s.py' % solution_id))
-    result = evaluate_and_save.delay(session_id, solution_id, username)
-    return get_success_response({
+    file.save(os.path.join(folder_path, '%s.py' % username))
+    result = evaluate_and_save.delay(session_id, username)
+
+    response = {
         'task_id': result.task_id
-    })
+    }
+
+    if registered_token:
+        response['token'] = registered_token
+
+    return get_success_response(response)
 
 @app.route('/summary/<session_id>', methods=['GET'])
 def get_summary_raw(session_id):
