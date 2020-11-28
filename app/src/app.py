@@ -1,6 +1,5 @@
 import os
 import json
-import base64
 from uuid import uuid4
 from flask import Flask, request
 from prettytable import PrettyTable
@@ -28,15 +27,10 @@ def get_uid():
 def hello_world():
     x = PrettyTable()
     x.field_names = ['Method', 'Endpoint', 'Parameters', 'Description', 'Return Value']
-    x.add_row(['POST', '/create', 'validator <File(.py)>', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
-    x.add_row(['POST', '/submit/<session_id>', 'username, solution <File(.py)>', 'Submit and evaluate a solution to the problem.', 'task_id'])
-    return x.get_html_string()
-
-# @app.route('/test')
-# def test_image():
-#     img = open('test.png', 'rb').read()
-#     b64 = base64.b64encode(img).decode('utf-8')
-#     return '<img src="data:image/png;base64, %s"></img>' % b64
+    x.add_row(['POST', '/create', 'validator (File *.py)', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
+    x.add_row(['POST', '/submit/%session_id%', 'username (String), solution (File *.py)', 'Submit and evaluate a solution to the problem.', 'task_id'])
+    x.add_row(['GET', '/summary/%session_id%', 'N/A', 'Computes a summary of all scores', 'Dictionnary'])
+    return '<pre>%s</pre>' % x.get_string(title='LogNice API')
 
 @app.route('/create', methods=['POST'])
 def create_session():
@@ -87,5 +81,5 @@ def submit_solution(session_id):
     })
 
 @app.route('/summary/<session_id>', methods=['GET'])
-def get_summary(session_id):
+def get_summary_raw(session_id):
     return get_success_response(summary(session_id))
