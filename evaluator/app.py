@@ -1,4 +1,5 @@
 import json
+import timeit
 from input.solution import Solution
 from input.validator import Validator
 
@@ -8,18 +9,38 @@ def execute():
 
     passed_count = 0
     blocker = None
-    for test in validator.tests():
-        input = test.get('input', {})
-        output = test.get('output', None)
-        if solution.solve(**input) != output:
-            blocker = test
-            break
-        passed_count += 1
 
-    return {
+    def to_measure():
+        nonlocal passed_count
+        nonlocal blocker
+
+        passed_count = 0
+        for test in validator.tests():
+            input = test.get('input', {})
+            output = test.get('output', None)
+            answer = solution.solve(**input)
+            if answer != output:
+                blocker = test
+                blocker['output'] = answer
+                blocker['expected'] = output
+                break
+            passed_count += 1
+
+    iteration = 1000
+    time = timeit.timeit(to_measure, number=iteration) / iteration
+
+    report = {
         'passed': passed_count,
         'blocker': blocker
     }
+
+    if not blocker:
+        report['time'] = {
+            'value': int(time * 1000000),
+            'unit': 'us'
+        }
+
+    return report
 
 def main():
     print(json.dumps(execute()))

@@ -1,0 +1,67 @@
+version: '3'
+services:
+    rabbit:
+        image: rabbitmq:latest
+        ports:
+            - ${RABBIT_PORT}:5672
+        networks:
+            - backend
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBIT_USERNAME}
+            RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD}
+
+    redis:
+        image: redis:latest
+        ports:
+            - ${REDIS_PORT}:6379
+        networks:
+            - backend
+
+    celery:
+        restart: always
+        build: ./app
+        command: sh /usr/src/app/start_celery.sh
+        volumes:
+            - ./app/sessions:/usr/src/app/sessions
+            - /var/run/docker.sock:/var/run/docker.sock
+        restart: on-failure
+        depends_on:
+            - rabbit
+            - redis
+        networks:
+            - backend
+        environment:
+            APP_DIR: ${PWD}
+            REDIS_HOSTNAME: ${REDIS_HOSTNAME}
+            REDIS_PORT: ${REDIS_PORT}
+            REDIS_DB: ${REDIS_DB}
+            RABBIT_HOSTNAME: ${RABBIT_HOSTNAME}
+            RABBIT_USERNAME: ${RABBIT_USERNAME}
+            RABBIT_PASSWORD: ${RABBIT_PASSWORD}
+            RABBIT_PORT: ${RABBIT_PORT}
+
+    web:
+        build: ./app
+        command: flask run --host 0.0.0.0 --port 5000
+        restart: on-failure
+        volumes:
+            - ./app/sessions:/usr/src/app/sessions
+            - /var/run/docker.sock:/var/run/docker.sock
+        depends_on:
+            - celery
+        environment:
+            FLASK_APP: /usr/src/app/app.py
+            REDIS_HOSTNAME: ${REDIS_HOSTNAME}
+            REDIS_PORT: ${REDIS_PORT}
+            REDIS_DB: ${REDIS_DB}
+            RABBIT_HOSTNAME: ${RABBIT_HOSTNAME}
+            RABBIT_USERNAME: ${RABBIT_USERNAME}
+            RABBIT_PASSWORD: ${RABBIT_PASSWORD}
+            RABBIT_PORT: ${RABBIT_PORT}
+        ports:
+            - ${FLASK_PORT}:5000
+        networks:
+            - backend
+
+networks:
+    backend:
