@@ -36,14 +36,14 @@ def hello_world():
 def create_session():
     validator_file_key = 'validator'
     if validator_file_key not in request.files:
-        return get_error_response('No file provided')
+        return get_error_response('No file provided'), 400
 
     file = request.files[validator_file_key]
     if file.filename == '':
-        return get_error_response('No file provided')
+        return get_error_response('No file provided'), 400
 
     if file.filename.split('.')[-1] != 'py':
-        return get_error_response('Wrong file extension')
+        return get_error_response('Wrong file extension'), 400
 
     session_id = get_uid()
     cwd = os.getcwd()
@@ -60,30 +60,30 @@ def submit_solution(session_id):
     token = request.form.get('token', None)
 
     if not username:
-        return get_error_response('No username provided')
+        return get_error_response('No username provided'), 400
 
     if username.find(' ') != -1:
-        return get_error_response('Username cannot contain spaces')
+        return get_error_response('Username cannot contain spaces'), 400
 
-    registered_token = None
+    should_register = False
     if not is_username_available(session_id, username):
         if not token:
-            return get_error_response('Username is not available. Please use your token if that username belongs to you.')
+            return get_error_response('Username is not available. Please use your token if that username belongs to you.'), 403
         if not is_token_valid(session_id, username, token):
-            return get_error_response('Invalid token for username.')
+            return get_error_response('Invalid token for username.'), 403
     else:
-        registered_token = register_username(session_id, username)
+        should_register = True
 
     solution_file_key = 'solution'
     if solution_file_key not in request.files:
-        return get_error_response('No file provided')
+        return get_error_response('No file provided'), 400
 
     file = request.files[solution_file_key]
     if file.filename == '':
-        return get_error_response('No file provided')
+        return get_error_response('No file provided'), 400
 
     if file.filename.split('.')[-1] != 'py':
-        return get_error_response('Wrong file extension')
+        return get_error_response('Wrong file extension'), 400
 
     file.save(os.path.join(
         os.getcwd(),
@@ -98,8 +98,8 @@ def submit_solution(session_id):
         'task_id': task.task_id
     }
 
-    if registered_token:
-        response['token'] = registered_token
+    if should_register:
+        response['token'] = register_username(session_id, username)
 
     return get_success_response(response)
 
