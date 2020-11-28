@@ -28,7 +28,7 @@ def hello_world():
     x = PrettyTable()
     x.field_names = ['Method', 'Endpoint', 'Parameters', 'Description', 'Return Value']
     x.add_row(['POST', '/create', 'validator (File *.py)', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
-    x.add_row(['POST', '/submit/%session_id%', 'username (String), solution (File *.py)', 'Submit and evaluate a solution to the problem.', 'task_id'])
+    x.add_row(['POST', '/submit/%session_id%', 'username (String), solution (File *.py), (token (String))', 'Submit and evaluate a solution to the problem.', 'task_id'])
     x.add_row(['GET', '/summary/%session_id%', 'N/A', 'Computes a summary of all scores', 'Dictionnary'])
     return '<pre>%s</pre>' % x.get_string(title='LogNice API')
 
@@ -59,8 +59,8 @@ def submit_solution(session_id):
     username = request.form.get('username', None)
     token = request.form.get('token', None)
 
-    if not isinstance(username, str):
-        return get_error_response('You must provide: username')
+    if not username:
+        return get_error_response('No username provided')
 
     if username.find(' ') != -1:
         return get_error_response('Username cannot contain spaces')
@@ -85,13 +85,17 @@ def submit_solution(session_id):
     if file.filename.split('.')[-1] != 'py':
         return get_error_response('Wrong file extension')
 
-    cwd = os.getcwd()
-    folder_path = os.path.join(cwd, SESSIONS_PATH, session_id)
-    file.save(os.path.join(folder_path, '%s.py' % username))
-    result = evaluate_and_save.delay(session_id, username)
+    file.save(os.path.join(
+        os.getcwd(),
+        SESSIONS_PATH,
+        session_id,
+        '%s.py' % username
+    ))
+
+    task = evaluate_and_save.delay(session_id, username)
 
     response = {
-        'task_id': result.task_id
+        'task_id': task.task_id
     }
 
     if registered_token:
