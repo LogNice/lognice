@@ -1,15 +1,7 @@
-# LogNice!
-
-To start, build the evaluator container.
+# Log(N)ice 🚀🚀🚀
 
 ```
-cd evaluator
-docker build -t evaluator .
-```
-
-Run docker compose.
-
-```
+docker build -t evaluator evaluator
 docker-compose build
 docker-compose up
 ```
