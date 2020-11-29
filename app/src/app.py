@@ -246,4 +246,4 @@ def is_token_valid(session_id, username, token):
     return token.encode('utf-8') == db_token
 
 if __name__ == '__main__':
-    socketio.run(flask, host='0.0.0.0', port=5000, debug=True)
+    socketio.run(flask, host='0.0.0.0', port=5000)
