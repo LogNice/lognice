@@ -1,9 +1,11 @@
 celery
 docker
 flask
+flask-socketio
+librabbitmq
 msgpack
 prettytable
 python-dotenv
 redis
+requests
 uuid
-librabbitmq
