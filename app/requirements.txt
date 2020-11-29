@@ -1,11 +1,10 @@
 celery
 docker
 flask
+matplotlib
 msgpack
 prettytable
 python-dotenv
 redis
 uuid
 librabbitmq
-matplotlib
-numpy
