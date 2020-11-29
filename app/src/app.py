@@ -110,21 +110,19 @@ def submit_solution(session_id):
 @app.route('/summary/<session_id>', methods=['GET'])
 def get_summary_raw(session_id):
     data = summary(session_id)
-    return get_success_response(data if data else 'No successful submission yet!')
+    return get_success_response(data or {})
 
 @app.route('/summary/table/<session_id>', methods=['GET'])
 def get_summary_table(session_id):
     data = summary(session_id)
     if not data:
-        return get_success_response('No successful submission yet!')
+        return get_success_response({})
 
     data = sorted(data.items(), key=lambda x: x[1]['time']['value'])
     x = PrettyTable()
-    x.field_names = ['Rank','Username', f"CPU Time in {data[0][1]['time']['unit']}"]
-    for i, (key, value) in enumerate(data):
-        username = key
-        time = value['time']['value']
-        x.add_row([i+1, username, time])
+    x.field_names = ['Rank', 'Username', f"CPU Time in {data[0][1]['time']['unit']}"]
+    for rank, (username, value) in enumerate(data):
+        x.add_row([rank + 1, username, value['time']['value']])
 
     return '<pre>%s</pre>' % x.get_string(title=f"{session_id} Ranking")
 
@@ -132,7 +130,7 @@ def get_summary_table(session_id):
 def get_summary_graph(session_id):
     data = summary(session_id)
     if not data:
-        return get_success_response('No successful submission yet!')
+        return get_error_response('No successful submission yet!'), 204
 
     data = sorted(data.items(), key=lambda x: x[1]['time']['value'], reverse=True)
     fig = plt.figure()
@@ -141,10 +139,10 @@ def get_summary_graph(session_id):
     pos = list(range(len(players)))
 
     plt.barh(pos, time, align='center', color='green')
-    plt.yticks(pos,(players))
+    plt.yticks(pos, players)
     for i, v in enumerate(time):
-        plt.text(v, i, f"{str(v)} {data[0][1]['time']['unit']}", fontweight = 'bold', fontsize = '10')
-    plt.xlim(0, time[-1]+time[0])
+        plt.text(v, i, f"{str(v)} {data[0][1]['time']['unit']}", fontweight='bold', fontsize='10')
+    plt.xlim(0, time[-1] + time[0])
     plt.xlabel(f"CPU Time in {data[0][1]['time']['unit']}")
     plt.title('Ranking based on CPU time')
     bytes = io.BytesIO()
