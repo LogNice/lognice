@@ -3,6 +3,7 @@ docker
 flask
 flask-socketio
 librabbitmq
+matplotlib
 msgpack
 prettytable
 python-dotenv

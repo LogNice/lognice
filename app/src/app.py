@@ -1,10 +1,12 @@
+import io
 import os
 import json
 import docker
+import matplotlib.pyplot as plt
 from redis import Redis
 from uuid import uuid4
 from celery import Celery, Task
-from flask import Flask, request
+from flask import Flask, request, send_file
 from flask_socketio import SocketIO
 from prettytable import PrettyTable
 from settings import (
@@ -66,6 +68,8 @@ def hello_world():
     x.add_row(['POST', '/create', 'validator (File *.py)', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
     x.add_row(['POST', '/submit/%session_id%', 'username (String), solution (File *.py), (token (String))', 'Submit and evaluate a solution to the problem.', 'task_id'])
     x.add_row(['GET', '/summary/%session_id%', 'N/A', 'Computes a summary of all scores', 'Dictionnary'])
+    x.add_row(['GET', '/summary/table/%session_id%', 'N/A', 'Computes a summary of all scores in a PrettyTable', 'PrettyTable'])
+    x.add_row(['GET', '/summary/graph/%session_id%', 'N/A', 'Computes a summary of all scores in a Horizontal Bar Matplotlib graph', 'PNG'])
     return '<pre>%s</pre>' % x.get_string(title='LogNice API')
 
 @flask.route('/create', methods=['POST'])
@@ -141,7 +145,46 @@ def submit_solution(session_id):
 
 @flask.route('/summary/<session_id>', methods=['GET'])
 def get_summary_raw(session_id):
-    return get_success_response(summary(session_id))
+    return get_success_response(summary(session_id) or {})
+
+@flask.route('/summary/table/<session_id>', methods=['GET'])
+def get_summary_table(session_id):
+    data = summary(session_id)
+    if not data:
+        return get_success_response({})
+
+    data = sorted(data.items(), key=lambda x: x[1]['time']['value'])
+    table = PrettyTable()
+    table.field_names = ['Rank', 'Username', 'CPU Time in %s' % data[0][1]['time']['unit']]
+    for rank, (username, value) in enumerate(data):
+        table.add_row([rank + 1, username, value['time']['value']])
+
+    return '<pre>%s</pre>' % table.get_string(title='[%s] Ranking' % session_id)
+
+@flask.route('/summary/graph/<session_id>', methods=['GET'])
+def get_summary_graph(session_id):
+    data = summary(session_id)
+    if not data:
+        return get_error_response('No successful submission yet!'), 204
+
+    data = sorted(data.items(), key=lambda x: x[1]['time']['value'], reverse=True)
+    names = [i[0] for i in data]
+    times = [v['time']['value'] for k, v in data]
+    pos = list(range(len(names)))
+
+    plt.barh(pos, times, align='center')
+    plt.yticks(pos, names)
+    for i, (_, d) in enumerate(data):
+        v, u = d['time']['value'], d['time']['unit']
+        plt.text(v, i, '%d %s' % (v, u), fontsize='10')
+    plt.xlim(0, times[-1] + 20)
+    plt.xlabel('CPU Time in %s' % data[0][1]['time']['unit'])
+    plt.title('Ranking based on CPU time')
+
+    bytes = io.BytesIO()
+    plt.savefig(bytes, format='png')
+    bytes.seek(0)
+    return send_file(bytes, mimetype='image/PNG')
 
 @socketio.on('register')
 def register(data):
