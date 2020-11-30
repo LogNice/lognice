@@ -68,8 +68,8 @@ def hello_world():
     x.add_row(['POST', '/create', 'validator (File *.py)', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
     x.add_row(['POST', '/submit/%session_id%', 'username (String), solution (File *.py), (token (String))', 'Submit and evaluate a solution to the problem.', 'task_id'])
     x.add_row(['GET', '/summary/%session_id%', 'N/A', 'Computes a summary of all scores', 'Dictionnary'])
-    x.add_row(['GET', '/summary/table/%session_id%', 'N/A', 'Computes a summary of all scores in a PrettyTable', 'PrettyTable'])
-    x.add_row(['GET', '/summary/graph/%session_id%', 'N/A', 'Computes a summary of all scores in a Horizontal Bar Matplotlib graph', 'PNG'])
+    x.add_row(['GET', '/summary/table/%session_id%', 'N/A', 'Computes a summary of all scores in a formatted table', 'String'])
+    x.add_row(['GET', '/summary/graph/%session_id%', 'N/A', 'Computes a summary of all scores in a bar plot graph.', 'PNG'])
     return '<pre>%s</pre>' % x.get_string(title='LogNice API')
 
 @flask.route('/create', methods=['POST'])
@@ -159,7 +159,7 @@ def get_summary_table(session_id):
     for rank, (username, value) in enumerate(data):
         table.add_row([rank + 1, username, value['time']['value']])
 
-    return '<pre>%s</pre>' % table.get_string(title='[%s] Ranking' % session_id)
+    return get_success_response(table.get_string(title='[%s] Ranking' % session_id))
 
 @flask.route('/summary/graph/<session_id>', methods=['GET'])
 def get_summary_graph(session_id):
