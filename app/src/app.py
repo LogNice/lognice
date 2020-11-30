@@ -194,6 +194,9 @@ def register(data):
         sid = request.sid
         redis.hset('%s-%s-%s' % (APP_NAME, SID_KEY, session_id), username, sid)
         redis.hset('%s-%s-%s' % (APP_NAME, SID_KEY, session_id), sid, username)
+        socketio.emit('register', True, room=sid)
+    else:
+        socketio.emit('register', False, room=sid)
 
 @socketio.on('unregister')
 def unregister(data):
