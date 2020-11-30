@@ -183,6 +183,7 @@ def get_summary_graph(session_id):
 
     bytes = io.BytesIO()
     plt.savefig(bytes, format='png')
+    plt.close()
     bytes.seek(0)
     return send_file(bytes, mimetype='image/PNG')
 
