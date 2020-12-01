@@ -26,7 +26,7 @@ def execute():
                 break
             passed_count += 1
 
-    iteration = 1000
+    iteration = 100
     time = timeit.timeit(to_measure, number=iteration) / iteration
 
     report = {
