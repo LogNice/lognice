@@ -73,10 +73,6 @@ def hello_world():
     x.add_row(['GET', '/api/summary/graph/%session_id%', 'N/A', 'Computes a summary of all scores in a bar plot graph.', 'PNG'])
     return '<pre>%s</pre>' % x.get_string(title='LogNice API')
 
-@flask.route('/test')
-def test():
-    return flask.send_static_file('create/index.html')
-
 @flask.route('/api/create', methods=['POST'])
 def create_session():
     validator_file_key = 'validator'
