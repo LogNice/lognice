@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from redis import Redis
 from uuid import uuid4
 from celery import Celery, Task
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, render_template
 from flask_socketio import SocketIO
 from prettytable import PrettyTable
 from settings import (
@@ -72,6 +72,18 @@ def hello_world():
     x.add_row(['GET', '/api/summary/table/%session_id%', 'N/A', 'Computes a summary of all scores in a formatted table', 'summary_str'])
     x.add_row(['GET', '/api/summary/graph/%session_id%', 'N/A', 'Computes a summary of all scores in a bar plot graph.', 'PNG'])
     return '<pre>%s</pre>' % x.get_string(title='LogNice API')
+
+@flask.route('/create')
+def create():
+    return flask.send_static_file('create/index.html')
+
+@flask.route('/submit')
+def submit():
+    return flask.send_static_file('submit/index.html')
+
+@flask.route('/notfound')
+def not_found():
+    return flask.send_static_file('submit/notfound.html')
 
 @flask.route('/api/create', methods=['POST'])
 def create_session():
