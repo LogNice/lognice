@@ -62,6 +62,10 @@ def evaluate_and_save(session_id, username):
 
     return result
 
+@flask.route('/')
+def home():
+    return flask.send_static_file('home/index.html')
+
 @flask.route('/create')
 def create():
     return flask.send_static_file('create/index.html')
