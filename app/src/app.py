@@ -62,17 +62,6 @@ def evaluate_and_save(session_id, username):
 
     return result
 
-@flask.route('/api')
-def hello_world():
-    x = PrettyTable()
-    x.field_names = ['Method', 'Endpoint', 'Parameters', 'Description', 'Return Value']
-    x.add_row(['POST', '/api/create', 'validator (File *.py)', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
-    x.add_row(['POST', '/api/submit/%session_id%', 'username (String), solution (File *.py), (token (String))', 'Submit and evaluate a solution to the problem.', 'task_id'])
-    x.add_row(['GET', '/api/summary/%session_id%', 'N/A', 'Computes a summary of all scores', 'summary'])
-    x.add_row(['GET', '/api/summary/table/%session_id%', 'N/A', 'Computes a summary of all scores in a formatted table', 'summary_str'])
-    x.add_row(['GET', '/api/summary/graph/%session_id%', 'N/A', 'Computes a summary of all scores in a bar plot graph.', 'PNG'])
-    return '<pre>%s</pre>' % x.get_string(title='LogNice API')
-
 @flask.route('/create')
 def create():
     return flask.send_static_file('create/index.html')
@@ -84,6 +73,17 @@ def submit():
 @flask.route('/notfound')
 def not_found():
     return flask.send_static_file('submit/notfound.html')
+
+@flask.route('/api')
+def api_help():
+    x = PrettyTable()
+    x.field_names = ['Method', 'Endpoint', 'Parameters', 'Description', 'Return Value']
+    x.add_row(['POST', '/api/create', 'validator (File *.py)', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
+    x.add_row(['POST', '/api/submit/%session_id%', 'username (String), solution (File *.py), (token (String))', 'Submit and evaluate a solution to the problem.', 'task_id'])
+    x.add_row(['GET', '/api/summary/%session_id%', 'N/A', 'Computes a summary of all scores', 'summary'])
+    x.add_row(['GET', '/api/summary/table/%session_id%', 'N/A', 'Computes a summary of all scores in a formatted table', 'summary_str'])
+    x.add_row(['GET', '/api/summary/graph/%session_id%', 'N/A', 'Computes a summary of all scores in a bar plot graph.', 'PNG'])
+    return '<pre>%s</pre>' % x.get_string(title='LogNice API')
 
 @flask.route('/api/create', methods=['POST'])
 def create_session():
