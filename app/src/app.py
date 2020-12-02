@@ -62,7 +62,7 @@ def evaluate_and_save(session_id, username):
 
     return result
 
-@flask.route('/')
+@flask.route('/api')
 def hello_world():
     x = PrettyTable()
     x.field_names = ['Method', 'Endpoint', 'Parameters', 'Description', 'Return Value']
