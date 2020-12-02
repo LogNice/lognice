@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 APP_NAME = os.environ.get('APP_NAME')
+APP_DEBUG = bool(os.environ.get('APP_DEBUG', 0))
+
 TOKEN_KEY = os.environ.get('TOKEN_KEY')
 SID_KEY = os.environ.get('SID_KEY')
 

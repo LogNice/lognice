@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+    celery:
+        volumes:
+            - ./app/src/app.py:/usr/src/app/app.py
+            - ./app/src/view:/usr/src/app/view
+        environment:
+            APP_DEBUG: 1

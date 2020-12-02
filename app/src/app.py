@@ -11,6 +11,7 @@ from flask_socketio import SocketIO
 from prettytable import PrettyTable
 from settings import (
     APP_NAME,
+    APP_DEBUG,
     TOKEN_KEY,
     SID_KEY,
     REDIS_HOSTNAME,
@@ -30,7 +31,7 @@ from settings import (
 
 REDIS_URL = 'redis://%s:%d/%d' % (REDIS_HOSTNAME, REDIS_PORT, REDIS_DB)
 RABBIT_URL = 'amqp://%s:%s@%s:%d' % (RABBIT_USERNAME, RABBIT_PASSWORD, RABBIT_HOSTNAME, RABBIT_PORT)
-flask = Flask(__name__)
+flask = Flask(__name__, static_folder='/usr/src/app/view')
 socketio = SocketIO(flask, message_queue=REDIS_URL)
 celery = Celery('app', backend=REDIS_URL, broker=RABBIT_URL)
 redis = Redis(host=REDIS_HOSTNAME, port=REDIS_PORT, db=REDIS_DB)
@@ -65,14 +66,18 @@ def evaluate_and_save(session_id, username):
 def hello_world():
     x = PrettyTable()
     x.field_names = ['Method', 'Endpoint', 'Parameters', 'Description', 'Return Value']
-    x.add_row(['POST', '/create', 'validator (File *.py)', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
-    x.add_row(['POST', '/submit/%session_id%', 'username (String), solution (File *.py), (token (String))', 'Submit and evaluate a solution to the problem.', 'task_id'])
-    x.add_row(['GET', '/summary/%session_id%', 'N/A', 'Computes a summary of all scores', 'Dictionnary'])
-    x.add_row(['GET', '/summary/table/%session_id%', 'N/A', 'Computes a summary of all scores in a formatted table', 'String'])
-    x.add_row(['GET', '/summary/graph/%session_id%', 'N/A', 'Computes a summary of all scores in a bar plot graph.', 'PNG'])
+    x.add_row(['POST', '/api/create', 'validator (File *.py)', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
+    x.add_row(['POST', '/api/submit/%session_id%', 'username (String), solution (File *.py), (token (String))', 'Submit and evaluate a solution to the problem.', 'task_id'])
+    x.add_row(['GET', '/api/summary/%session_id%', 'N/A', 'Computes a summary of all scores', 'summary'])
+    x.add_row(['GET', '/api/summary/table/%session_id%', 'N/A', 'Computes a summary of all scores in a formatted table', 'summary_str'])
+    x.add_row(['GET', '/api/summary/graph/%session_id%', 'N/A', 'Computes a summary of all scores in a bar plot graph.', 'PNG'])
     return '<pre>%s</pre>' % x.get_string(title='LogNice API')
 
-@flask.route('/create', methods=['POST'])
+@flask.route('/test')
+def test():
+    return flask.send_static_file('create/index.html')
+
+@flask.route('/api/create', methods=['POST'])
 def create_session():
     validator_file_key = 'validator'
     if validator_file_key not in request.files:
@@ -94,7 +99,7 @@ def create_session():
         'session_id': session_id
     })
 
-@flask.route('/submit/<session_id>', methods=['POST'])
+@flask.route('/api/submit/<session_id>', methods=['POST'])
 def submit_solution(session_id):
     username = request.form.get('username', None)
     token = request.form.get('token', None)
@@ -143,11 +148,13 @@ def submit_solution(session_id):
 
     return get_success_response(response)
 
-@flask.route('/summary/<session_id>', methods=['GET'])
+@flask.route('/api/summary/<session_id>', methods=['GET'])
 def get_summary_raw(session_id):
-    return get_success_response(summary(session_id) or {})
+    return get_success_response({
+        'summary': summary(session_id) or {}
+    })
 
-@flask.route('/summary/table/<session_id>', methods=['GET'])
+@flask.route('/api/summary/table/<session_id>', methods=['GET'])
 def get_summary_table(session_id):
     data = summary(session_id)
     if not data:
@@ -159,9 +166,11 @@ def get_summary_table(session_id):
     for rank, (username, value) in enumerate(data):
         table.add_row([rank + 1, username, value['time']['value']])
 
-    return get_success_response(table.get_string(title='[%s] Ranking' % session_id))
+    return get_success_response({
+        'summary_str': table.get_string(title='[%s] Ranking' % session_id)
+    })
 
-@flask.route('/summary/graph/<session_id>', methods=['GET'])
+@flask.route('/api/summary/graph/<session_id>', methods=['GET'])
 def get_summary_graph(session_id):
     data = summary(session_id)
     if not data:
@@ -250,4 +259,4 @@ def is_token_valid(session_id, username, token):
     return token.encode('utf-8') == db_token
 
 if __name__ == '__main__':
-    socketio.run(flask, host='0.0.0.0', port=5000)
+    socketio.run(flask, host='0.0.0.0', port=5000, debug=APP_DEBUG)
