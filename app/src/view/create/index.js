@@ -25,7 +25,7 @@ window.onload = () => {
             data: formData,
             success: res => {
                 const sessionId = JSON.parse(res).result.session_id
-                const link = `${window.location.origin}/submit?session_id=${sessionId}`
+                const link = `${window.location.origin}/submit?session-id=${sessionId}`
                 submitLink.innerHTML = `<span>Session created!</span><span>Use this link to submit solutions:</span><a href='${link}'>${link}</a>`
                 create.disabled = false
             },
