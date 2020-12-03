@@ -14,6 +14,14 @@ window.onload = () => {
         indentOn: /[({:\[]$/,
     }
     const jar = CodeJar(document.querySelector('#editor'), withLineNumbers(highlight), options)
+    jar.updateCode(
+`# 'Solution' class is mandatory
+class Solution:
+    # so is the 'solve' method
+    def solve(self, **kwargs):
+        pass`
+    )
+
     const submit = document.querySelector('#submit')
 
     submit.onclick = () => {
