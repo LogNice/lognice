@@ -5,7 +5,7 @@ function isEmptyOrSpaces(str){
 window.onload = () => {
     const urlParams = new URLSearchParams(window.location.search)
     if (!urlParams.has('session-id')) {
-        window.location.replace('/notfound');
+        window.location.replace('/notfound')
     }
     const sessionId = urlParams.get('session-id')
 

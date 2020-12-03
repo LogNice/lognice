@@ -15,3 +15,10 @@ body {
     align-items: center;
     background-color: #f5f5f5;
 }
+
+#options-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
