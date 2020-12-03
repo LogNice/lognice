@@ -1,7 +1,7 @@
-version: '3'
+version: '3.4'
 
 services:
-    celery:
+    flask:
         volumes:
             - ./app/src/app.py:/usr/src/app/app.py
             - ./app/src/view:/usr/src/app/view
