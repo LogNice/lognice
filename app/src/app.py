@@ -76,7 +76,7 @@ def submit():
 
 @flask.route('/notfound')
 def not_found():
-    return flask.send_static_file('submit/notfound.html')
+    return flask.send_static_file('notfound/index.html')
 
 @flask.route('/api')
 def api_help():
