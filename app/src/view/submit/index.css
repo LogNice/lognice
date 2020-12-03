@@ -42,3 +42,11 @@ h1 {
     tab-size: 4;
     background-color: #212121;
 }
+
+#status {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: black;
+}

@@ -170,7 +170,7 @@ def get_summary_raw(session_id):
 def get_summary_table(session_id):
     data = summary(session_id)
     if not data:
-        return get_success_response({})
+        return get_success_response({'summary_str': 'No data available yet.'})
 
     data = sorted(data.items(), key=lambda x: x[1]['time']['value'])
     table = PrettyTable()

@@ -15,11 +15,18 @@
             <h1>Write a solution!</h1>
             <div class='m-3' style='width: 50%;'>
                 <div id='editor' class='language-python'></div>
+                <div class='input-group mt-3'>
+                    <div class='input-group-prepend'>
+                        <span class='input-group-text' id='basic-addon1'>@</span>
+                    </div>
+                    <input id='username' type='text' class='form-control' placeholder='Username' aria-label='Username' aria-describedby='basic-addon1'>
+                </div>
             </div>
             <button id='submit' type='button' class='btn btn-outline-dark'>Submit</button>
+            <div id='status' class='m-3'></div>
         </div>
         <script src='https://code.jquery.com/jquery-3.3.1.slim.min.js' crossorigin='anonymous'></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
         <script src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js' crossorigin='anonymous'></script>
         <script src='https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js' crossorigin='anonymous'></script>
         <script src='https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.1/highlight.min.js'></script>
