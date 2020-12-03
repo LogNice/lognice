@@ -8,6 +8,21 @@ window.onload = () => {
         indentOn: /[({:\[]$/
     }
     const jar = CodeJar(document.querySelector('#editor'), withLineNumbers(highlight), options)
+    jar.updateCode(
+`# 'Validator' class is mandatory
+class Validator:
+    # so is the 'tests' method
+    def tests(self):
+        '''Should return an array of dicts, representing test cases'''
+        return [
+            {
+                'input': {'n': i},
+                'output': 2 * i
+            }
+            for i in range(100)
+        ]`
+    )
+
     const create = document.querySelector('#create')
     const submitLink = document.querySelector('#submit-link')
 
