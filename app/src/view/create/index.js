@@ -24,7 +24,7 @@ class Validator:
     )
 
     const create = document.querySelector('#create')
-    const submitLink = document.querySelector('#submit-link')
+    const status = document.querySelector('#status')
 
     create.onclick = () => {
         create.disabled = true
@@ -41,12 +41,12 @@ class Validator:
             success: res => {
                 const sessionId = JSON.parse(res).result.session_id
                 const link = `${window.location.origin}/submit?session-id=${sessionId}`
-                submitLink.innerHTML = `<span>Session created!</span><span>Use this link to submit solutions:</span><a href='${link}'>${link}</a>`
+                status.innerHTML = `<span>Session created!</span><span>Use this link to submit solutions:</span><a href='${link}'>${link}</a>`
                 create.disabled = false
             },
             error: e => {
                 const message = JSON.parse(e.responseText).message
-                submitLink.innerHTML = `<span style='color: red;'>${message}</span>`
+                status.innerHTML = `<span style='color: red;'>${message}</span>`
                 create.disabled = false
             }
         })

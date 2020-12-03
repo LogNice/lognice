@@ -33,7 +33,7 @@ h1 {
     background-color: #212121;
 }
 
-#submit-link {
+#status {
     display: flex;
     flex-direction: column;
     justify-content: center;
