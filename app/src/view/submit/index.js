@@ -52,6 +52,15 @@ class Solution:
         status.innerText = 'Connecting...'
 
         const socket = io(window.location.origin)
+        const disconnectSocket = () => {
+            socket.emit('unregister', {
+                'session_id': sessionId,
+                'username': name
+            })
+            socket.disconnect()
+            socket.close()
+        }
+
         socket.on('connect', () => {
             status.innerText = 'Registering...'
             socket.emit('register', {
@@ -64,8 +73,7 @@ class Solution:
             if (!isRegistered) {
                 status.innerText = 'Could not register'
                 submit.disabled = false
-                socket.disconnect()
-                socket.close()
+                disconnectSocket()
             }
 
             status.innerText = 'Submitting...'
@@ -86,8 +94,7 @@ class Solution:
                     const message = JSON.parse(e.responseText).message
                     status.innerHTML = `<span style='color: red;'>${message}</span>`
                     submit.disabled = false
-                    socket.disconnect()
-                    socket.close()
+                    disconnectSocket()
                 }
             })
         })
@@ -109,8 +116,7 @@ class Solution:
                     <span>CPU Time <b style='color: green;'>${data.time.value} ${data.time.unit}</b></span>`
             }
             submit.disabled = false
-            socket.disconnect()
-            socket.close()
+            disconnectSocket()
         })
     }
 }
