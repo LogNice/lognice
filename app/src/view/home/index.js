@@ -8,7 +8,9 @@ window.onload = () => {
 
     join.onclick = () => {
         bootbox.prompt('Enter session id:', sessionId => {
-            location.href = `/submit?session-id=${sessionId}`
+            if (sessionId) {
+                location.href = `/submit?session-id=${sessionId}`
+            }
         })
     }
 }
