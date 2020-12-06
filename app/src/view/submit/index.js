@@ -49,25 +49,62 @@ class Solution:
             formData.append('token', previousToken)
         }
 
-        $.ajax({
-            url: `/api/submit/${sessionId}`,
-            method: 'POST',
-            contentType: false,
-            processData: false,
-            data: formData,
-            success: res => {
-                const json = JSON.parse(res).result
-                if (json.token) {
-                    localStorage.setItem('lognice_token', json.token)
-                }
-                status.innerText = 'Submitted!'
+        status.innerText = 'Connecting...'
+
+        const socket = io(window.location.origin)
+        socket.on('connect', () => {
+            status.innerText = 'Registering...'
+            socket.emit('register', {
+                'session_id': sessionId,
+                'username': name
+            })
+        })
+
+        socket.on('register', isRegistered => {
+            if (!isRegistered) {
+                status.innerText = 'Could not register'
                 submit.disabled = false
-            },
-            error: e => {
-                const message = JSON.parse(e.responseText).message
-                status.innerHTML = `<span style='color: red;'>${message}</span>`
-                submit.disabled = false
+                socket.disconnect()
+                socket.close()
             }
+
+            status.innerText = 'Submitting...'
+            $.ajax({
+                url: `/api/submit/${sessionId}`,
+                method: 'POST',
+                contentType: false,
+                processData: false,
+                data: formData,
+                success: res => {
+                    status.innerText = 'Evaluating...'
+                    const json = JSON.parse(res).result
+                    if (json.token) {
+                        localStorage.setItem('lognice_token', json.token)
+                    }
+                },
+                error: e => {
+                    const message = JSON.parse(e.responseText).message
+                    status.innerHTML = `<span style='color: red;'>${message}</span>`
+                    submit.disabled = false
+                    socket.disconnect()
+                    socket.close()
+                }
+            })
+        })
+
+        socket.on('task_finished', data => {
+            status.innerText = JSON.stringify(data)
+            blocker = data.blocker
+            if (blocker) {
+                const ins = blocker.input
+                const inputStr = Object.keys(ins).map(k => `${k}=${ins[k]}`).join(', ')
+                status.innerHTML = `<b style='color: red;'>Your code didn't pass the following test case:</b></br>Input: ${inputStr}</br>Expected output: ${blocker.expected}</br>Actual output: ${blocker.output}`
+            } else {
+                status.innerHTML = `<span>You passed all <b style='color: green;'>${data.passed}</b> test cases!</span><span>CPU Time <b style='color: green;'>${data.time.value} ${data.time.unit}</b></span>`
+            }
+            submit.disabled = false
+            socket.disconnect()
+            socket.close()
         })
     }
 }

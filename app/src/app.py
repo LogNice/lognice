@@ -32,7 +32,7 @@ from settings import (
 REDIS_URL = 'redis://%s:%d/%d' % (REDIS_HOSTNAME, REDIS_PORT, REDIS_DB)
 RABBIT_URL = 'amqp://%s:%s@%s:%d' % (RABBIT_USERNAME, RABBIT_PASSWORD, RABBIT_HOSTNAME, RABBIT_PORT)
 flask = Flask(__name__, static_folder='/usr/src/app/view')
-socketio = SocketIO(flask, message_queue=REDIS_URL)
+socketio = SocketIO(flask, message_queue=REDIS_URL, cors_allowed_origins='*')
 celery = Celery('app', backend=REDIS_URL, broker=RABBIT_URL)
 redis = Redis(host=REDIS_HOSTNAME, port=REDIS_PORT, db=REDIS_DB)
 client = docker.from_env()
