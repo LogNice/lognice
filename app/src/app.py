@@ -241,7 +241,7 @@ def on_evaluated(data):
 
     # write to database
     if result['blocker'] is None:
-        redis.hset('%s-%s' % (APP_NAME, session_id), username, json.dumps(data))
+        redis.hset('%s-%s' % (APP_NAME, session_id), username, json.dumps(result))
 
     # notify client
     emit_task_update(session_id, username, 'task_finished', result)
