@@ -27,8 +27,8 @@ from settings import (
     SESSIONS_PATH_HOST,
     VALIDATOR_NAME,
     SOLUTION_NAME,
-    EVALUATOR_CONTAINER,
     CONTAINER_INPUT_PATH,
+    EVAL_CONTAINER,
     EVAL_NETWORK
 )
 
@@ -46,7 +46,7 @@ def evaluate_and_save(session_id, username):
     validator_path = os.path.join(SESSIONS_PATH_HOST, session_id, VALIDATOR_NAME)
     solution_path = os.path.join(SESSIONS_PATH_HOST, session_id, '%s.py' % username)
     client.containers.run(
-        EVALUATOR_CONTAINER,
+        EVAL_CONTAINER,
         volumes={
             validator_path: {
                 'bind': os.path.join(CONTAINER_INPUT_PATH, VALIDATOR_NAME),
