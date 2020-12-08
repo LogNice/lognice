@@ -41,7 +41,9 @@ class Validator:
             success: res => {
                 const sessionId = JSON.parse(res).result.session_id
                 const link = `${window.location.origin}/submit?session-id=${sessionId}`
-                status.innerHTML = `<span>Session created!</span><span>Use this link to submit solutions:</span><a href='${link}'>${link}</a>`
+                status.innerHTML = `<span id='status-success'>Session created!</span>
+                    <span id='status-success'>People can join the session using the following id: <b style='color: green;'>${sessionId}</b></span>
+                    <span id='status-success'>or use the following link: <a href='${link}'>${link}</a></span>`
                 create.disabled = false
             },
             error: e => {

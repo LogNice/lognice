@@ -40,3 +40,7 @@ h1 {
     align-items: center;
     color: black;
 }
+
+#status-success {
+    font-size: 20px;
+}
