@@ -14,6 +14,8 @@ from settings import (
     APP_DEBUG,
     TOKEN_KEY,
     SID_KEY,
+    FLASK_HOSTNAME,
+    FLASK_PORT,
     REDIS_HOSTNAME,
     REDIS_PORT,
     REDIS_DB,
@@ -26,9 +28,11 @@ from settings import (
     VALIDATOR_NAME,
     SOLUTION_NAME,
     EVALUATOR_CONTAINER,
-    CONTAINER_INPUT_PATH
+    CONTAINER_INPUT_PATH,
+    EVAL_NETWORK
 )
 
+FLASK_URL = 'http://%s:%d' % (FLASK_HOSTNAME, FLASK_PORT)
 REDIS_URL = 'redis://%s:%d/%d' % (REDIS_HOSTNAME, REDIS_PORT, REDIS_DB)
 RABBIT_URL = 'amqp://%s:%s@%s:%d' % (RABBIT_USERNAME, RABBIT_PASSWORD, RABBIT_HOSTNAME, RABBIT_PORT)
 flask = Flask(__name__, static_folder='/usr/src/app/view')
@@ -41,26 +45,26 @@ client = docker.from_env()
 def evaluate_and_save(session_id, username):
     validator_path = os.path.join(SESSIONS_PATH_HOST, session_id, VALIDATOR_NAME)
     solution_path = os.path.join(SESSIONS_PATH_HOST, session_id, '%s.py' % username)
-    logs = client.containers.run(EVALUATOR_CONTAINER, volumes={
-        validator_path: {
-            'bind': os.path.join(CONTAINER_INPUT_PATH, VALIDATOR_NAME),
-            'mode': 'ro'
+    client.containers.run(
+        EVALUATOR_CONTAINER,
+        volumes={
+            validator_path: {
+                'bind': os.path.join(CONTAINER_INPUT_PATH, VALIDATOR_NAME),
+                'mode': 'ro'
+            },
+            solution_path: {
+                'bind': os.path.join(CONTAINER_INPUT_PATH, SOLUTION_NAME),
+                'mode': 'ro'
+            }
         },
-        solution_path: {
-            'bind': os.path.join(CONTAINER_INPUT_PATH, SOLUTION_NAME),
-            'mode': 'ro'
-        }
-    }, auto_remove=True)
-
-    # write to database
-    result = json.loads(logs)
-    if result['blocker'] is None:
-        redis.hset('%s-%s' % (APP_NAME, session_id), username, logs)
-
-    # notify client
-    emit_task_update(session_id, username, 'task_finished', result)
-
-    return result
+        environment={
+            'SESSION_ID': session_id,
+            'USERNAME': username,
+            'SOCKETIO_URL': FLASK_URL
+        },
+        network=EVAL_NETWORK,
+        auto_remove=True
+    )
 
 @flask.route('/')
 def home_page():
@@ -209,7 +213,7 @@ def get_summary_graph(session_id):
     return send_file(bytes, mimetype='image/PNG')
 
 @socketio.on('register')
-def register(data):
+def on_register(data):
     session_id = data.get('session_id', None)
     username = data.get('username', None)
     if session_id and username:
@@ -221,13 +225,26 @@ def register(data):
         socketio.emit('register', False, room=sid)
 
 @socketio.on('unregister')
-def unregister(data):
+def on_unregister(data):
     session_id = data.get('session_id', None)
     username = data.get('username', None)
     if session_id and username:
         sid = request.sid
         redis.hdel('%s-%s-%s' % (APP_NAME, SID_KEY, session_id), username)
         redis.hdel('%s-%s-%s' % (APP_NAME, SID_KEY, session_id), sid)
+
+@socketio.on('evaluated')
+def on_evaluated(data):
+    session_id = data['session_id']
+    username = data['username']
+    result = data['result']
+
+    # write to database
+    if result['blocker'] is None:
+        redis.hset('%s-%s' % (APP_NAME, session_id), username, json.dumps(result))
+
+    # notify client
+    emit_task_update(session_id, username, 'task_finished', result)
 
 def get_error_response(message):
     return json.dumps({

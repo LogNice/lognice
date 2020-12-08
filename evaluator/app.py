@@ -1,7 +1,27 @@
+import os
 import json
 import timeit
+import socketio
 from input.solution import Solution
 from input.validator import Validator
+
+def notify(data):
+    sio = socketio.Client()
+
+    def on_done():
+        sio.disconnect()
+        sio.close()
+
+    @sio.event
+    def connect():
+        sio.emit('evaluated', {
+            'session_id': os.environ.get('SESSION_ID'),
+            'username': os.environ.get('USERNAME'),
+            'result': data
+        }, callback=on_done)
+
+    sio.connect(os.environ.get('SOCKETIO_URL'))
+    sio.wait()
 
 def execute():
     solution = Solution()
@@ -40,10 +60,7 @@ def execute():
             'unit': 'us'
         }
 
-    return report
-
-def main():
-    print(json.dumps(execute()))
+    notify(report)
 
 if __name__ == '__main__':
-    main()
+    execute()
