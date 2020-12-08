@@ -30,6 +30,14 @@ function showPlot(summary) {
         },
         xaxis: {
             tickangle: -45
+        },
+        yaxis: {
+            title: {
+                text: 'CPU Time (us)',
+                font: {
+                    size: 15
+                }
+            }
         }
     }
 
