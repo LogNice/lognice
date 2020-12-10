@@ -241,14 +241,14 @@ def on_unregister(data):
 def on_evaluated(data):
     session_id = data['session_id']
     username = data['username']
-    result = data['result']
+    response = data['data']
 
-    # write to database
-    if result['blocker'] is None:
-        redis.hset('%s-%s' % (APP_NAME, session_id), username, json.dumps(result))
+    if response['status'] == 'success':
+        result = response['result']
+        if result['blocker'] is None:
+            redis.hset('%s-%s' % (APP_NAME, session_id), username, json.dumps(result))
 
-    # notify client
-    emit_task_update(session_id, username, 'task_finished', result)
+    emit_task_update(session_id, username, 'task_finished', response)
 
 def get_error_response(message):
     return json.dumps({
