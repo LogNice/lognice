@@ -2,8 +2,18 @@ import os
 import json
 import timeit
 import socketio
-from input.solution import Solution
-from input.validator import Validator
+
+def get_error_response(message):
+    return {
+        'status': 'error',
+        'message': message
+    }
+
+def get_success_response(result):
+    return {
+        'status': 'success',
+        'result': result
+    }
 
 def notify(data):
     sio = socketio.Client()
@@ -17,7 +27,7 @@ def notify(data):
         sio.emit('evaluated', {
             'session_id': os.environ.get('SESSION_ID'),
             'username': os.environ.get('USERNAME'),
-            'result': data
+            'data': data
         }, callback=on_done)
 
     sio.connect(os.environ.get('SOCKETIO_URL'))
@@ -60,7 +70,12 @@ def execute():
             'unit': 'us'
         }
 
-    notify(report)
+    notify(get_success_response(report))
 
 if __name__ == '__main__':
-    execute()
+    try:
+        from input.solution import Solution
+        from input.validator import Validator
+        execute()
+    except BaseException as error:
+        notify(get_error_response(str(error)))

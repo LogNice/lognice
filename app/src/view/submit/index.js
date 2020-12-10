@@ -100,20 +100,24 @@ class Solution:
         })
 
         socket.on('task_finished', data => {
-            status.innerText = JSON.stringify(data)
-            blocker = data.blocker
-            if (blocker) {
-                const ins = blocker.input
-                const inputStr = Object.keys(ins).map(k => `${k}=${ins[k]}`).join(', ')
-                status.innerHTML = `
-                    <b style='color: red;'>Your code didn't pass the following test case:</b></br>
-                    Input: ${inputStr}</br>
-                    Expected output: ${blocker.expected}</br>
-                    Actual output: ${blocker.output}`
+            if (data.status == 'success') {
+                result = data.result
+                blocker = result.blocker
+                if (blocker) {
+                    const ins = blocker.input
+                    const inputStr = Object.keys(ins).map(k => `${k}=${ins[k]}`).join(', ')
+                    status.innerHTML = `
+                        <b style='color: red;'>Your code didn't pass the following test case:</b></br>
+                        Input: ${inputStr}</br>
+                        Expected output: ${blocker.expected}</br>
+                        Actual output: ${blocker.output}`
+                } else {
+                    status.innerHTML = `
+                        <span>You passed all <b style='color: green;'>${result.passed}</b> test cases!</span>
+                        <span>CPU Time <b style='color: green;'>${result.time.value} ${result.time.unit}</b></span>`
+                }
             } else {
-                status.innerHTML = `
-                    <span>You passed all <b style='color: green;'>${data.passed}</b> test cases!</span>
-                    <span>CPU Time <b style='color: green;'>${data.time.value} ${data.time.unit}</b></span>`
+                status.innerHTML = `<span style='color: red;'>${data.message}</span>`
             }
             submit.disabled = false
             disconnectSocket()
