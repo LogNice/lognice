@@ -44,7 +44,7 @@ class Solution:
         formData.append('solution', new File([jar.toString()], 'solution.py'))
         formData.append('username', name)
 
-        const previousToken = localStorage.getItem('lognice_token')
+        const previousToken = localStorage.getItem(`lognice-token-${sessionId}-${name}`)
         if (previousToken) {
             formData.append('token', previousToken)
         }
@@ -87,7 +87,7 @@ class Solution:
                     status.innerText = 'Evaluating...'
                     const json = JSON.parse(res).result
                     if (json.token) {
-                        localStorage.setItem('lognice_token', json.token)
+                        localStorage.setItem(`lognice-token-${sessionId}-${name}`, json.token)
                     }
                 },
                 error: e => {

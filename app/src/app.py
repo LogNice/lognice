@@ -78,6 +78,10 @@ def create_page():
 def submit_page():
     return flask.send_static_file('submit/index.html')
 
+@flask.route('/summary')
+def summary_page():
+    return flask.send_static_file('summary/index.html')
+
 @flask.errorhandler(404)
 def page_not_found(e):
     return flask.send_static_file('notfound/index.html')
