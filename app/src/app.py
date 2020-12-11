@@ -14,6 +14,7 @@ from settings import (
     APP_DEBUG,
     TOKEN_KEY,
     SID_KEY,
+    DESCRIPTION_KEY,
     FLASK_HOSTNAME,
     FLASK_PORT,
     REDIS_HOSTNAME,
@@ -92,6 +93,7 @@ def api_help():
     x.field_names = ['Method', 'Endpoint', 'Parameters', 'Description', 'Return Value']
     x.add_row(['POST', '/api/create', 'validator (File *.py)', 'Creates a new session, provided a validator script for test cases.', 'session_id'])
     x.add_row(['POST', '/api/submit/%session_id%', 'username (String), solution (File *.py), (token (String))', 'Submit and evaluate a solution to the problem.', 'task_id'])
+    x.add_row(['GET', '/api/description/%session_id%', 'N/A', 'Get the description of the problem.', 'description'])
     x.add_row(['GET', '/api/summary/%session_id%', 'N/A', 'Computes a summary of all scores', 'summary'])
     x.add_row(['GET', '/api/summary/table/%session_id%', 'N/A', 'Computes a summary of all scores in a formatted table', 'summary_str'])
     x.add_row(['GET', '/api/summary/graph/%session_id%', 'N/A', 'Computes a summary of all scores in a bar plot graph.', 'PNG'])
@@ -111,8 +113,12 @@ def create_session():
         return get_error_response('Wrong file extension'), 400
 
     session_id = get_uid()
-    cwd = os.getcwd()
-    folder_path = os.path.join(cwd, SESSIONS_PATH, session_id)
+
+    description = request.form.get('description', None)
+    if description:
+        redis.set('%s-%s-%s' % (APP_NAME, DESCRIPTION_KEY, session_id), description)
+
+    folder_path = os.path.join(os.getcwd(), SESSIONS_PATH, session_id)
     os.makedirs(folder_path, exist_ok=True)
     file.save(os.path.join(folder_path, VALIDATOR_NAME))
     return get_success_response({
@@ -167,6 +173,13 @@ def submit_solution(session_id):
         response['token'] = register_username(session_id, username)
 
     return get_success_response(response)
+
+@flask.route('/api/description/<session_id>', methods=['GET'])
+def get_session_description(session_id):
+    description = redis.get('%s-%s-%s' % (APP_NAME, DESCRIPTION_KEY, session_id))
+    return get_success_response({
+        'description': description.decode('utf-8') if description else ''
+    })
 
 @flask.route('/api/summary/<session_id>', methods=['GET'])
 def get_summary_raw(session_id):

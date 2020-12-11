@@ -30,6 +30,22 @@ class Solution:
     const status = document.querySelector('#status')
     const username = document.querySelector('#username')
 
+    $.ajax({
+        url: `/api/description/${sessionId}`,
+        method: 'GET',
+        contentType: false,
+        processData: false,
+        success: res => {
+            const description = JSON.parse(res).result.description
+            const html = window.markdownit().render(description)
+            document.getElementById('description').innerHTML = html
+        },
+        error: e => {
+            const message = JSON.parse(e.responseText).message
+            console.log(message)
+        }
+    })
+
     submit.onclick = () => {
         const name = username.value
         if (isEmptyOrSpaces(name)) {
