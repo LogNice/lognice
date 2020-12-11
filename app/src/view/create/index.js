@@ -1,3 +1,7 @@
+function isEmptyOrSpaces(str){
+    return str === null || str.match(/^ *$/) !== null
+}
+
 window.onload = () => {
     const highlight = editor => {
         editor.textContent = editor.textContent
@@ -25,12 +29,18 @@ class Validator:
 
     const create = document.querySelector('#create')
     const status = document.querySelector('#status')
+    const description = document.querySelector('#description')
 
     create.onclick = () => {
         create.disabled = true
 
         const formData = new FormData()
         formData.append('validator', new File([jar.toString()], 'validator.py'))
+
+        const text = description.value
+        if (!isEmptyOrSpaces(text)) {
+            formData.append('description', text)
+        }
 
         $.ajax({
             url: '/api/create',

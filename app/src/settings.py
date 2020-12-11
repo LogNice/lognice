@@ -20,6 +20,7 @@ RABBIT_PORT = int(os.environ.get('RABBIT_PORT'))
 
 TOKEN_KEY = os.environ.get('TOKEN_KEY')
 SID_KEY = os.environ.get('SID_KEY')
+DESCRIPTION_KEY = os.environ.get('DESCRIPTION_KEY')
 SESSIONS_PATH = os.environ.get('SESSIONS_PATH')
 SESSIONS_PATH_HOST = os.environ.get('SESSIONS_PATH_HOST')
 VALIDATOR_NAME = os.environ.get('VALIDATOR_NAME')
