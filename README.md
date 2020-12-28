@@ -1,5 +1,7 @@
 # Log(N)ice 🚀🚀🚀
 
+Omar Aflak & Marvin Martin
+
 ```
 docker build -t lognice_eval evaluator
 docker-compose up --build
