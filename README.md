@@ -2,6 +2,11 @@
 
 Omar Aflak & Marvin Martin
 
+## Description
+The project purpose is to create a python distributed code executor for an online coding competition plateform.
+Each user can create a session, with a given code exercice. Then competitors can join this session and submit their code to participate to the challenge.
+Each session has a ranking of the best competitors (in Runtime) when all the test cases are completed.
+
 ## Requirement
 Docker, yes only Docker !
 
